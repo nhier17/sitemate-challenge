@@ -8,16 +8,17 @@ function App() {
   const [newIssue, setNewIssue] = useState({ title: '', description: '' });
   
   //fetch issues
+  useEffect(() => {
    const fetchIssues = async() => {
     try {
       const response = await axios.get(api_url);
       console.log(response.data);
-      setIssues([...issues, response.data]);
+      setIssues(response.data);
+
     } catch (error) {
       console.error(error);
     }
   }
-  useEffect(() => {
     fetchIssues();
   }, [])
 
@@ -32,8 +33,28 @@ function App() {
       console.error(error);
     }
   }
- 
 
+  //update an issue
+  const updateIssue =async(id, updatedIssue) => {
+    try {
+      const response = await axios.patch(`${api_url}/${id}`, updatedIssue);
+      setIssues(issues.map(issue => (issue.id === id ? response.data : issue)));
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  //delete an issue
+  const deleteIssue = async(id) => {
+    try {
+      await axios.delete(`${api_url}/${id}`);
+      setIssues(issues.filter(issue => issue.id!== id));
+    } catch (error) {
+      console.error(error);
+    }
+
+  }
+  
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center px-4 py-8">
@@ -70,8 +91,27 @@ function App() {
             className="bg-white p-4 rounded-lg shadow-md flex justify-between items-start"
             >
               <div>
-                <h3 className="text-lg font-bold text-gray-700">{issues.title}</h3>
-                 <p className="text-gray-700">{issues.description}</p>
+                <h3 className="text-lg font-bold text-gray-700">{issue.title}</h3>
+                 <p className="text-gray-700">{issue.description}</p>
+              </div>
+              <div className="flex space-x-2">
+              <button
+              onClick={() =>
+                updateIssue(issue.id, {
+                  title: prompt('New title', issue.title),
+                  description: prompt('New description', issue.description),
+                })
+              }
+              className="bg-yellow-500 text-white p-2 rounded hover:bg-yellow-600"
+              >
+              Update Issue
+              </button>
+              <button
+                  className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
+                  onClick={() => deleteIssue(issue.id)}
+                >
+                  Delete Issue
+                </button>
               </div>
             </li>
           ))}
